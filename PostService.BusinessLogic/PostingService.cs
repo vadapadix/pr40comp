@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PostService.Models;
 using PostService.CommonTypes;
+
 namespace PostService.BusinessLogic;
 
 public class PostingService : IPostingService
@@ -37,21 +38,29 @@ public class PostingService : IPostingService
 
         newPosting.CreatedAt = DateTime.UtcNow;
 
-        float baseRate = newPosting.DeliveryType switch
-        {
-            DeliveryType.Department => 40f,
-            DeliveryType.Courier => 80f,
-            DeliveryType.ExpressCourier => 120f,
-            _ => 40f
-        };
+        float baseRate;
+        float perKgRate;
 
-        float perKgRate = newPosting.DeliveryType switch
+        if (newPosting.DeliveryType == DeliveryType.Department)
         {
-            DeliveryType.Department => 10f,
-            DeliveryType.Courier => 15f,
-            DeliveryType.ExpressCourier => 24f,
-            _ => 10f
-        };
+            baseRate = 40f;
+            perKgRate = 10f;
+        }
+        else if (newPosting.DeliveryType == DeliveryType.Courier)
+        {
+            baseRate = 80f;
+            perKgRate = 15f;
+        }
+        else if (newPosting.DeliveryType == DeliveryType.ExpressCourier)
+        {
+            baseRate = 120f;
+            perKgRate = 24f;
+        }
+        else
+        {
+            baseRate = 40f;
+            perKgRate = 10f;
+        }
 
         newPosting.Price = baseRate + (newPosting.Weight * perKgRate);
 
@@ -66,7 +75,8 @@ public class PostingService : IPostingService
 
     public Posting? Find(int postingId)
     {
-        return _postings.FirstOrDefault(p => p.Id == postingId);
+        var posting = _postings.FirstOrDefault(p => p.Id == postingId);
+        return posting;
     }
 
     public Posting? Update(Posting posting)
